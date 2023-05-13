@@ -89,19 +89,17 @@ def list_item():
     return{"items": list}
 
 @app.get("/items/{item_id}")
-def get_item(item_id: int):
-    with open("items.json", "r") as f:
-        di = json.load(f)
-    try:
-        return di["items"][item_id]
-    except KeyError:
-        raise HTTPException(
-            status_code=404, detail="'items' key not found in items.json"
-        )
-    except IndexError:
-        raise HTTPException(
-            status_code=404, detail=f"item_id {item_id} not found in items.json"
-        )
+def get_item_withID(item_id: int):
+    conn = sqlite3.connect(dbpath)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM items WHERE id = ?", (item_id,))
+    item = cursor.fetchone()
+    
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    return dict(zip(['id', 'name', 'category', 'image'], item))
+
 
 
 @app.get("/image/{image_filename}")
