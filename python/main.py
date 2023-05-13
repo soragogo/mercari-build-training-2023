@@ -29,36 +29,49 @@ def root():
     return {"message": "Hello, world!"}
 
 @app.post("/items")
-def add_item():
-    logger.info(f"Receive item: {name}, {category}, {image.filename}")
+def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile = File(...)):
+    logger.info(f"Receive item: {name}, category: {category}, image: {image.filename}")
+    
+    conn = sqlite3.connect(dbpath)
+    cursor = conn.cursor()
+    
+    image_file = image.file.read()
+    image_hash = hashlib.sha256(image_file).hexdigest()
+    image_filename = f"{image_hash}.jpg"
+    image_path = images / image_filename
+    
+    with open(image_path, 'wb') as f:
+        f.write(image_file)
+    
+    cursor.execute("SELECT id FROM category WHERE name = ?", (category,))
+    category_id = cursor.fetchone()
 
-    # get hash and save image
-    file = image.file.read()
-    image_hash = hashlib.sha256(file).hexdigest()
-    image_filename = image_hash + ".jpg"
-    path = "images/" + image_filename
-    with open(path, "wb") as f:
-        f.write(file)
+    if category_id is None:
+        cursor.execute("INSERT INTO category (name) VALUES (?)", (category,))
+        category_id = cursor.lastrowid
+    else:
+        category_id = category_id[0]
+    
+    cursor.execute("SELECT id FROM items WHERE name = ?", (name,))
+    item_id = cursor.fetchone()
 
-    # update json
-    with open("items.json", "r") as f:
-        di = json.load(f)
-    if not "items" in di:
-        di["items"] = []
-    di["items"].append(
-        {"name": name, "category": category, "image_filename": image_filename}
-    )
 
-    with open("items.json", "w") as f:
-        json.dump(di, f)
-    return {"message": f"item received: {name}"}
+    if item_id is not None:
+        return {"error": f"Item with the same name already exists: {name}"}
+    
+    cursor.execute("INSERT INTO items (name, category_id, image_filename) VALUES (?, ?, ?)",
+                   (name, category_id, image_filename,))
+    conn.commit()
+
+    return {"message": f"Item received: {name}, category: {category}, image: {image_filename}"}
+
 
 @app.get("/items")
 def list_item():
     conn = sqlite3.connect(dbpath)
     cursor = conn.cursor()
     cursor.execute((
-        SELECT items.'id', items.name, category.name, items.image_filename
+        SELECT items.id, items.name, category.name, items.image_filename
         FROM items
         INNER JOIN category ON items.category_id = category.id
     ))
