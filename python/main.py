@@ -25,7 +25,6 @@ app.add_middleware(
 def root():
     return {"message": "Hello, world!"}
 
-
 @app.post("/items")
 def add_item(
     name: str = Form(...), category: str = Form(...), image: UploadFile = File(...)
@@ -53,7 +52,6 @@ def add_item(
         json.dump(di, f)
     return {"message": f"item received: {name}"}
 
-
 @app.get("/items")
 def list_item():
     with open("items.json", "r") as f:
@@ -78,7 +76,7 @@ def get_item(item_id: int):
 
 
 @app.get("/image/{image_filename}")
-async def get_image(image_filename):
+def get_image(image_filename):
     # Create image path
     image = images / image_filename
 
