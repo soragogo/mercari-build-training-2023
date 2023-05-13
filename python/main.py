@@ -13,6 +13,7 @@ app = FastAPI()
 logger = logging.getLogger("uvicorn")
 logger.level = logging.INFO
 images = pathlib.Path(__file__).parent.resolve() / "images"
+dbpath = pathlib.Path(__file__).parent.resolve() / "db" / "mercari.sqlite3"
 origins = [os.environ.get("FRONT_URL", "http://localhost:3000")]
 app.add_middleware(
     CORSMiddleware,
@@ -28,9 +29,7 @@ def root():
     return {"message": "Hello, world!"}
 
 @app.post("/items")
-def add_item(
-    name: str = Form(...), category: str = Form(...), image: UploadFile = File(...)
-):
+def add_item():
     logger.info(f"Receive item: {name}, {category}, {image.filename}")
 
     # get hash and save image
@@ -56,10 +55,25 @@ def add_item(
 
 @app.get("/items")
 def list_item():
-    with open("items.json", "r") as f:
-        di = json.load(f)
-    return di
-
+    conn = sqlite3.connect(dbpath)
+    cursor = conn.cursor()
+    cursor.execute((
+        SELECT items.'id', items.name, category.name, items.image_filename
+        FROM items
+        INNER JOIN category ON items.category_id = category.id
+    ))
+    items = cursor.fetchall()
+    list_items = []
+    for item in items:
+        dict_item = {
+            "id": item[0],
+            "name": item[1],
+            "category": item[2],
+            "image_filename": item[3]
+        }
+        list_items.append(dict_item)
+    conn.close()
+    return{"items": list}
 
 @app.get("/items/{item_id}")
 def get_item(item_id: int):
