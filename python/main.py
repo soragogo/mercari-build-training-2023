@@ -70,11 +70,11 @@ def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile
 def list_item():
     conn = sqlite3.connect(dbpath)
     cursor = conn.cursor()
-    cursor.execute((
+    cursor.execute("""(
         SELECT items.id, items.name, category.name, items.image_filename
         FROM items
         INNER JOIN category ON items.category_id = category.id
-    ))
+    )""")
     items = cursor.fetchall()
     list_items = []
     for item in items:
