@@ -62,7 +62,7 @@ def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile
     cursor.execute("INSERT INTO items (name, category_id, image_filename) VALUES (?, ?, ?)",
                    (name, category_id, image_filename,))
     conn.commit()
-
+    image.file.close()
     return {"message": f"Item received: {name}, category: {category}, image: {image_filename}"}
 
 
