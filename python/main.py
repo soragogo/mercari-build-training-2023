@@ -119,3 +119,28 @@ def get_image(image_filename):
 
     conn.close()
     return FileResponse(image)
+
+@app.get("/search")
+def searvh_item(keyword: str):
+    conn = sqlite3.connect(dbpath)
+    cursor = conn.cursor()
+    keyword_search = f"%{keyword}%"
+    cursor.execute('''
+        SELECT items.id, items.name, category.name, items.image_filename
+        FROM items
+        INNER JOIN category ON items.category_id = category.id 
+        WHERE items.name LIKE ?
+                   ''', (keyword_search,))
+    items = cursor.fetchall()
+    
+    dict_items = []
+    for item in items:
+        items = {
+            "id": item[0],
+            "name": item[1],
+            "category": item[2],
+            "image_filename": item[3]
+        }
+        dict_items.append(item)
+    conn.close()
+    return {"items": dict_items}
