@@ -1,4 +1,4 @@
-FROM python::3.10.6-alpine
+FROM python:3.10.6-alpine
 
 RUN addgroup -S mercari && adduser -S trainee -G mercari
 #RUN chown -R trainee:mercari /path/to/db
@@ -20,5 +20,5 @@ COPY images images
 RUN chown -R trainee:mercari /app/db
 
 USER trainee
-CMD ["python", "app.py"]
 
+CMD ["python", "-V"]
