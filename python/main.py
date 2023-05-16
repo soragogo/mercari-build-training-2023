@@ -107,8 +107,8 @@ def get_image(image_filename):
     # Create image path
     image = images / image_filename
 
-    #if not image_filename.endswith(".jpg"):
-        #raise HTTPException(status_code=400, detail="Image path does not end with .jpg")
+    if not image_filename.endswith(".jpg"):
+        raise HTTPException(status_code=400, detail="Image path does not end with .jpg")
 
     if not image.exists():
         logger.debug(f"Image not found: {image}")

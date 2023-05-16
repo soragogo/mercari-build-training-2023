@@ -1,11 +1,10 @@
 FROM python:3.10.6-alpine
 
 RUN addgroup -S mercari && adduser -S trainee -G mercari
-#RUN chown -R trainee:mercari /path/to/db
+
 
 USER root
 
-RUN apk add --update --no-cache python3 py3-pip
 
 WORKDIR /app
 COPY requirements.txt .
