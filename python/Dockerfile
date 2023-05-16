@@ -6,7 +6,6 @@ RUN addgroup -S mercari && adduser -S trainee -G mercari
 USER root
 
 RUN apk add --update --no-cache python3 py3-pip
-COPY app.py /app/app.py
 
 WORKDIR /app
 COPY requirements.txt .
