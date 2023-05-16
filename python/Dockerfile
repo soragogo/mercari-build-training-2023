@@ -13,12 +13,13 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app/db \
     && mkdir -p /app/images 
 
-COPY ../db db
+COPY db db
 COPY main.py .
 COPY images images
 
-RUN chown -R trainee:mercari /app/db
-
+RUN chown -R trainee:mercari /app/db \
+    && chown -R trainee:mercari /app/images 
 USER trainee
 
-CMD ["python", "-V"]
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9000"]
