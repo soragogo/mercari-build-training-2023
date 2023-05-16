@@ -40,6 +40,7 @@ def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile
     image_filename = f"{image_hash}.jpg"
     image_path = images / image_filename
     
+    
     with open(image_path, 'wb') as f:
         f.write(image_file)
     
@@ -63,6 +64,7 @@ def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile
                    (name, category_id, image_filename,))
     conn.commit()
     image.file.close()
+    conn.close()
     return {"message": f"Item received: {name}, category: {category}, image: {image_filename}"}
 
 
@@ -98,6 +100,7 @@ def get_item_withID(item_id: int):
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     
+    conn.close()
     return dict(zip(['id', 'name', 'category', 'image'], item))
 
 
@@ -114,4 +117,5 @@ def get_image(image_filename):
         logger.debug(f"Image not found: {image}")
         image = images / "default.jpg"
 
+    conn.close()
     return FileResponse(image)
